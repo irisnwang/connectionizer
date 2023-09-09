@@ -1,37 +1,23 @@
-import {
-    Button,
-    ChakraProvider,
-    Circle,
-    Flex,
-    HStack,
-    Heading,
-    Stack,
-    Text,
-    Menu,
-    MenuButton,
-} from '@chakra-ui/react';
-import useMethods from 'use-methods';
+import { Box, Button, Grid, Typography } from '@mui/material';
+import CircleIcon from '@mui/icons-material/Circle';
+import data from '../test/res/examples.json'
 
 const DAY_1 = [
     {
         category: 'Timekeeping devices',
         items: ['Clock', 'Hourglass', 'Sundial', 'Watch'],
-        difficulty: 1,
     },
     {
         category: 'Units of measure',
         items: ['Second', 'Newton', 'Hertz', 'Mole'],
-        difficulty: 2,
     },
     {
         category: 'Hairstyles',
         items: ['Bob', 'Crop', 'Pixie', 'Shag'],
-        difficulty: 3,
     },
     {
         category: 'Dr. ___',
-        items: ['Evil', 'Pepper', 'J', 'No'],
-        difficulty: 4,
+        items: ['Evil', 'PPP', 'J', 'No'],
     },
 ];
 
@@ -109,87 +95,94 @@ export const Game = () => {
             items: shuffle(options.groups.flatMap((g) => g.items)),
             // strings of selected
             activeItems: [],
-            mistakesRemaining: 4,
+            mistakesRemaining: options.json.guesses,
         };
 
-        const [state, fns] = useMethods(methods, initialState);
-
         return {
-            ...state,
-            ...fns,
+            ...initialState,
+            ...methods,
         };
     };
 
     const game = useGame({
+        json: data.example1,
         groups: DAY_1,
     });
 
     return (
-        <ChakraProvider>
-            <Menu>
-                <MenuButton m={[2, 3]} as={Button}>
-                    Share
-                </MenuButton>
-            </Menu>
-            <Flex h="100vh" w="100vw" align="center" justify="center">
-                <Stack spacing={4} align="center">
-                    <Heading size="3xl" fontFamily="Georgia" fontWeight="light">
+        <>
+
+            <Button>
+                Share
+            </Button>
+            <Box h="100vh" w="100vw" align="center" justify="center">
+                <Grid spacing={4} align="center">
+                    <Typography size="3xl" fontFamily="Georgia" fontWeight="light">
                         Connections
-                    </Heading>
-                    <Text fontWeight="semibold">Create four groups of four!</Text>
-                    <Stack>
+                    </Typography>
+                    <Typography fontWeight="semibold">Create four groups of four!</Typography>
+                    <Grid>
                         {game.complete.map((group) => (
-                            <Stack
+                            <Grid
                                 spacing={1}
                                 lineHeight={1}
                                 rounded="lg"
                                 align="center"
                                 justify="center"
-                                h="80px"
-                                w="624px"
+                                minHeight="80px"
+                                minWidth="624px"
                                 bg={difficultyColor(group.difficulty)}
                             >
-                                <Text fontSize="xl" fontWeight="extrabold" textTransform="uppercase">
+                                <Typography fontSize="xl" fontWeight="extrabold" textTransform="uppercase">
                                     {group.category}
-                                </Text>
-                                <Text fontSize="xl" textTransform="uppercase">
+                                </Typography>
+                                <Typography fontSize="xl" textTransform="uppercase">
                                     {group.items.join(', ')}
-                                </Text>
-                            </Stack>
+                                </Typography>
+                            </Grid>
                         ))}
 
                         {chunk(game.items, 4).map((row) => (
                             <>
-                                <HStack>
+                                <Grid>
                                     {row.map((item) => (
-                                        <Button
-                                            w="150px"
-                                            h="80px"
-                                            bg="#efefe6"
-                                            fontSize="16px"
-                                            fontWeight="extrabold"
-                                            textTransform="uppercase"
-                                            onClick={() => game.toggleActive(item)}
-                                            isActive={game.activeItems.includes(item)}
-                                            _active={{
-                                                bg: '#5a594e',
-                                                color: 'white',
-                                            }}
+                                        <Button style={{
+                                            minWidth: "150px",
+                                            maxWidth: "150px",
+                                            minHeight: "80px"
+                                        }}
+
+                                        // bg="#efefe6"
+                                        // fontSize="16px"
+                                        // fontWeight="extrabold"
+                                        // textTransform="uppercase"
+                                        // onClick={() => game.toggleActive(item)}
+                                        // isActive={game.activeItems.includes(item)}
+                                        // _active={{
+                                        //     bg: '#5a594e',
+                                        //     color: 'white',
+                                        // }}
                                         >
-                                            {item}
+                                            <Typography noWrap>
+                                                {item}
+                                            </Typography>
+
                                         </Button>
                                     ))}
-                                </HStack>
+                                </Grid>
                             </>
                         ))}
-                    </Stack>
-                    <HStack align="baseline">
-                        <Text>Mistakes remaining:</Text>
-                        {[...Array(game.mistakesRemaining).keys()].map(() => (
-                            <Circle bg="gray.800" size="12px" />
-                        ))}
-                    </HStack>
-                    <HStack>
+                    </Grid>
+                    <Grid align="baseline">
+                        <Typography>Mistakes remaining:</Typography>
+                        {
+                            game.mistakesRemaining >= 0 ?
+                                [...Array(game.mistakesRemaining).keys()].map(() => (
+                                    <CircleIcon bg="gray.800" size="12px" />
+                                )) : "Infinite"
+                        }
+                    </Grid>
+                    <Grid>
                         <Button
                             colorScheme="black"
                             variant="outline"
@@ -218,10 +211,10 @@ export const Game = () => {
                         >
                             Submit
                         </Button>
-                    </HStack>
-                </Stack>
-            </Flex>
-        </ChakraProvider>
+                    </Grid>
+                </Grid>
+            </Box>
+        </>
     );
 }
 
