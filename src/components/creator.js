@@ -9,7 +9,6 @@ export const Creator = () => {
     form.watch('guesses');
 
     const onSubmit = (data) => {
-        alert("happy happy happy")
         console.log({
             guesses: data.guesses,
             category1: {
