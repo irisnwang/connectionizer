@@ -7,6 +7,8 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { createPuzzle } from "../services/puzzles-service";
+import { useEffect, useState } from "react";
+import { BASE_URL } from "./utils";
 
 export const Creator = () => {
   const form = useForm();
@@ -14,9 +16,8 @@ export const Creator = () => {
   const infiniteGuesses = form.watch("infinite");
   form.watch("guesses");
 
-  const onSubmit = (data) => {
-    console.log(
-      createPuzzle({
+  const onSubmit = async (data) => {
+    const created = await createPuzzle({
         guesses: data.guesses,
         words: [
           { word: data.cat1word1, category: data.category1, difficulty: 1 },
@@ -36,14 +37,14 @@ export const Creator = () => {
           { word: data.cat4word3, category: data.category4, difficulty: 4 },
           { word: data.cat4word4, category: data.category4, difficulty: 4 },
         ],
-      })
-    );
-  };
+      });
+      window.location.replace(BASE_URL + "create/" + created._id);
+    };
 
   function CategoryRow(number) {
     return (
-      <>
-        <Box>
+      <Box display="grid" gridTemplateColumns="1fr 1fr 1fr 1fr" gap={2}>
+        <Box gridColumn="span 4">
           <Controller
             rules={{ required: true }}
             key={number}
@@ -53,6 +54,7 @@ export const Creator = () => {
               <TextField
                 helperText={error ? error.message : null}
                 size="small"
+                fullWidth
                 error={!!error}
                 onChange={onChange}
                 value={value}
@@ -62,7 +64,7 @@ export const Creator = () => {
             )}
           />
         </Box>
-        <Box display="grid" gridTemplateColumns="1fr 1fr 1fr 1fr" gap={2}>
+        <>
           {Array.from({ length: 4 }, (_, i) => i + 1).map((n) => {
             return (
               <Controller
@@ -87,8 +89,8 @@ export const Creator = () => {
               />
             );
           })}
-        </Box>
-      </>
+        </>
+      </Box>
     );
   }
 
@@ -155,7 +157,7 @@ export const Creator = () => {
         />
       </Box>
       <div />
-      <Button onClick={form.handleSubmit(onSubmit)}>Submit</Button>
+      <Button onClick={form.handleSubmit(onSubmit)} color="secondary" variant="outlined">Submit</Button>
     </Box>
   );
 };
