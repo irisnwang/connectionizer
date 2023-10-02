@@ -1,8 +1,8 @@
 import { Box, Button, Grid, Typography } from "@mui/material";
 import CircleIcon from "@mui/icons-material/Circle";
-import { examples } from "../test/res/examples";
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { findPuzzleById } from "../services/puzzles-service";
 
 const difficultyColor = (difficulty) => {
   return {
@@ -69,29 +69,33 @@ const shuffle = (list) => {
 //   };
 // };
 
-const getGame = (id) => {
-  for (const example of examples) {
-    if (example.id === id) {
-      return example;
-    }
-  }
-  return examples[0];
-};
-
 export const Game = () => {
   const { id } = useParams();
-  const gameData = getGame(id);
+  const [gameData, setGameData] = useState({});
   const [activeItems, setActiveItems] = useState([]);
   const [incomplete, setIncomplete] = useState(gameData.words);
-  const [items, setItems] = useState(
-    shuffle([...gameData.words])
-  );
-  const [mistakesRemaining, setMistakesRemaining] = useState(gameData.guesses);
+  const [items, setItems] = useState([]);
+  const [mistakesRemaining, setMistakesRemaining] = useState(-1);
+
+  const getGame = async () => {
+    const game = await findPuzzleById(id);
+    if (Object.keys(game).length === 0) {
+      setGameData("NO GAME");
+      return;
+    }
+    setGameData(game);
+    setItems(shuffle([...game.words]));
+    setMistakesRemaining(parseInt(game.guesses));
+  };
 
   const game = {
     // color tiles
     complete: [],
   };
+
+  useEffect(() => {
+    getGame();
+  }, []);
 
   const select = (item) => {
     if (activeItems.includes(item)) {
@@ -101,7 +105,11 @@ export const Game = () => {
     }
   };
 
-  return (
+  return gameData === "NO GAME" ? (
+    <Box h="100vh" w="100vw" align="center" justify="center">
+      404
+    </Box>
+  ) : (
     <>
       <Button>Share {id}</Button>
       <Box h="100vh" w="100vw" align="center" justify="center">
@@ -138,7 +146,10 @@ export const Game = () => {
               </Grid>
             ))}
 
-            {chunk(items.flatMap(g => g.word), 4).map((row) => (
+            {chunk(
+              items.flatMap((g) => g.word),
+              4
+            ).map((row) => (
               <>
                 <Grid container gap={2} justifyContent="center">
                   {row.map((item) => (
@@ -162,7 +173,11 @@ export const Game = () => {
                       //     color: 'white',
                       // }}
                     >
-                      <Typography color={activeItems.includes(item) ? "white" : "black"}>{item}</Typography>
+                      <Typography
+                        color={activeItems.includes(item) ? "white" : "black"}
+                      >
+                        {item}
+                      </Typography>
                     </Button>
                   ))}
                 </Grid>
@@ -181,7 +196,11 @@ export const Game = () => {
             <Button variant="outline" rounded="full" onClick={game.shuffle}>
               Shuffle
             </Button>
-            <Button variant="outline" rounded="full" onClick={() => setActiveItems([])}>
+            <Button
+              variant="outline"
+              rounded="full"
+              onClick={() => setActiveItems([])}
+            >
               Deselect All
             </Button>
             <Button
