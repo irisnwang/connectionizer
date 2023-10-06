@@ -15,6 +15,10 @@ const theme = createTheme({
     warning: { main: "#729eeb" },
     success: { main: "#bc70c4" },
     secondary: { main: "#5a594e" },
+    action: {
+      disabledBackground: "", // don't set the disable background color
+      disabled: "#efefe6", // set the disable foreground color
+    },
   },
 });
 

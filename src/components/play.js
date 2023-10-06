@@ -6,10 +6,10 @@ import { findPuzzleById } from "../services/puzzles-service";
 
 const difficultyColor = (difficulty) => {
   return {
-    1: "#fbd400",
-    2: "#b5e352",
-    3: "#729eeb",
-    4: "#bc70c4",
+    1: "info",
+    2: "error",
+    3: "warning",
+    4: "success",
   }[difficulty];
 };
 
@@ -20,7 +20,7 @@ const chunk = (list, size) => {
   });
 };
 
-const shuffle = (list) => {
+const shuffleUtil = (list) => {
   return list.sort(() => 0.5 - Math.random());
 };
 
@@ -32,14 +32,6 @@ const shuffle = (list) => {
 //       } else if (state.activeItems.length < 4) {
 //         state.activeItems.push(item);
 //       }
-//     },
-
-//     shuffle() {
-//       shuffle(state.items);
-//     },
-
-//     deselectAll() {
-//       state.activeItems = [];
 //     },
 
 //     submit() {
@@ -73,9 +65,11 @@ export const Game = () => {
   const { id } = useParams();
   const [gameData, setGameData] = useState({});
   const [activeItems, setActiveItems] = useState([]);
-  const [incomplete, setIncomplete] = useState(gameData.words);
-  const [items, setItems] = useState([]);
+  const [complete, setComplete] = useState([]);
+  const [incomplete, setIncomplete] = useState([]);
   const [mistakesRemaining, setMistakesRemaining] = useState(-1);
+  const [winState, setWinState] = useState("playing");
+  const [pastGuesses, setPastGuesses] = useState([]);
 
   const getGame = async () => {
     const game = await findPuzzleById(id);
@@ -84,13 +78,64 @@ export const Game = () => {
       return;
     }
     setGameData(game);
-    setItems(shuffle([...game.words]));
+    setIncomplete(shuffleUtil([...game.words]));
     setMistakesRemaining(parseInt(game.guesses));
   };
 
-  const game = {
-    // color tiles
-    complete: [],
+  const submit = () => {
+    if (activeItems.length !== 4) {
+      throw new Error("THIS SHOULD NEVER HAPPEN!");
+    }
+
+    const [cat, difficulty] = [
+      activeItems[0].category,
+      activeItems[0].difficulty,
+    ];
+
+    for (let i = 1; i < 4; i++) {
+      if (
+        activeItems[i].difficulty !== difficulty ||
+        activeItems[i].category !== cat
+      ) {
+        alert("NO!!!");
+        setMistakesRemaining(mistakesRemaining - 1);
+        if (mistakesRemaining === 1) {
+          alert("wompwomp");
+          setWinState("lose");
+        }
+        return;
+      }
+    }
+
+    setIncomplete(
+      incomplete.filter(
+        (incompleteItem) =>
+          incompleteItem !== activeItems[0] &&
+          incompleteItem !== activeItems[1] &&
+          incompleteItem !== activeItems[2] &&
+          incompleteItem !== activeItems[3]
+      )
+    );
+
+    setComplete([
+      ...complete,
+      {
+        category: cat,
+        difficulty,
+        text: activeItems.map((item) => item.word).join(", "),
+      },
+    ]);
+
+    if (complete.length === 3) {
+      alert("happy happy happy");
+      setWinState("win");
+    }
+
+    setActiveItems([]);
+  };
+
+  const shuffle = () => {
+    setIncomplete(shuffleUtil([...incomplete]));
   };
 
   useEffect(() => {
@@ -104,6 +149,10 @@ export const Game = () => {
       setActiveItems([...activeItems, item]);
     }
   };
+
+  const showResults = () => {
+    alert("TODO")
+  }
 
   return gameData === "NO GAME" ? (
     <Box h="100vh" w="100vw" align="center" justify="center">
@@ -120,36 +169,23 @@ export const Game = () => {
           <Typography fontWeight="semibold">
             Create four groups of four!
           </Typography>
-          <Grid container gap={2} py={3}>
-            {game.complete.map((group) => (
-              <Grid
-                container
-                spacing={1}
-                lineHeight={1}
-                rounded="lg"
-                align="center"
-                justify="center"
-                minHeight="80px"
-                minWidth="624px"
-                bg={difficultyColor(group.difficulty)}
+          <Grid container gap={2} justifyContent="center">
+            {complete.map((group) => (
+              <Button
+                disabled
+                style={{
+                  minWidth: "650px",
+                  // maxWidth: "600px",
+                  minHeight: "80px",
+                }}
+                color={difficultyColor(group.difficulty)}
+                variant="contained"
               >
-                <Typography
-                  fontSize="xl"
-                  fontWeight="extrabold"
-                  textTransform="uppercase"
-                >
-                  {group.category}
-                </Typography>
-                <Typography fontSize="xl" textTransform="uppercase">
-                  {group.items.join(", ")}
-                </Typography>
-              </Grid>
+                <Typography color={"black"}>{group.text}</Typography>
+              </Button>
             ))}
 
-            {chunk(
-              items.flatMap((g) => g.word),
-              4
-            ).map((row) => (
+            {chunk(incomplete, 4).map((row) => (
               <>
                 <Grid container gap={2} justifyContent="center">
                   {row.map((item) => (
@@ -163,20 +199,12 @@ export const Game = () => {
                         activeItems.includes(item) ? "secondary" : "primary"
                       }
                       variant="contained"
-                      // bg="#efefe6"
-                      // fontSize="16px"
-                      // fontWeight="extrabold"
-                      // textTransform="uppercase"
                       onClick={() => select(item)}
-                      // _active={{
-                      //     bg: '#5a594e',
-                      //     color: 'white',
-                      // }}
                     >
                       <Typography
                         color={activeItems.includes(item) ? "white" : "black"}
                       >
-                        {item}
+                        {item.word}
                       </Typography>
                     </Button>
                   ))}
@@ -184,34 +212,48 @@ export const Game = () => {
               </>
             ))}
           </Grid>
-          <Grid align="baseline">
-            <Typography>Mistakes remaining:</Typography>
-            {mistakesRemaining >= 0
-              ? [...Array(mistakesRemaining).keys()].map(() => (
-                  <CircleIcon bg="gray.800" size="12px" />
-                ))
-              : "Infinite"}
-          </Grid>
-          <Grid>
-            <Button variant="outline" rounded="full" onClick={game.shuffle}>
-              Shuffle
-            </Button>
+
+          {winState === "playing" ? (
+            <>
+              <Grid align="baseline">
+                <Typography>Mistakes remaining:</Typography>
+                {mistakesRemaining >= 0
+                  ? [...Array(mistakesRemaining).keys()].map(() => (
+                      <CircleIcon bg="gray.800" size="12px" />
+                    ))
+                  : "Infinite"}
+              </Grid>
+              <Grid>
+                <Button variant="outline" rounded="full" onClick={shuffle}>
+                  Shuffle
+                </Button>
+                <Button
+                  variant="outline"
+                  rounded="full"
+                  onClick={() => setActiveItems([])}
+                >
+                  Deselect All
+                </Button>
+                <Button
+                  variant="outline"
+                  rounded="full"
+                  disabled={activeItems.length !== 4}
+                  onClick={submit}
+                >
+                  Submit
+                </Button>
+              </Grid>
+            </>
+          ) : (
             <Button
               variant="outline"
               rounded="full"
-              onClick={() => setActiveItems([])}
+              onClick={showResults}
+              sx={{margin: 4}}
             >
-              Deselect All
+              View Results
             </Button>
-            <Button
-              variant="outline"
-              rounded="full"
-              disabled={activeItems.length !== 4}
-              onClick={game.submit}
-            >
-              Submit
-            </Button>
-          </Grid>
+          )}
         </Grid>
       </Box>
     </>

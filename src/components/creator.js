@@ -7,7 +7,6 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { createPuzzle } from "../services/puzzles-service";
-import { useEffect, useState } from "react";
 import { BASE_URL } from "./utils";
 
 export const Creator = () => {
