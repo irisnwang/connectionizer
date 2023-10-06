@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Alert, Box, Button, Dialog, Grid, Typography } from "@mui/material";
 import CircleIcon from "@mui/icons-material/Circle";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -6,11 +6,30 @@ import { findPuzzleById } from "../services/puzzles-service";
 
 const difficultyColor = (difficulty) => {
   return {
-    1: "info",
-    2: "error",
-    3: "warning",
-    4: "success",
+    1: "yellow",
+    2: "green",
+    3: "blue",
+    4: "purple",
   }[difficulty];
+};
+
+const difficultyEmoji = (difficulty) => {
+  return {
+    1: "🟨",
+    2: "🟩",
+    3: "🟦",
+    4: "🟪",
+  }[difficulty];
+};
+
+const setEquals = (setA, setB) => {
+  console.log(setA);
+  console.log(setB);
+  if (setA.length !== setB.length) {
+    return false;
+  }
+
+  return [...setA].every((item) => setB.includes(item));
 };
 
 const chunk = (list, size) => {
@@ -24,43 +43,6 @@ const shuffleUtil = (list) => {
   return list.sort(() => 0.5 - Math.random());
 };
 
-// const methods = (state) => {
-//   return {
-//     toggleActive(item) {
-//       if (state.activeItems.includes(item)) {
-//         state.activeItems = state.activeItems.filter((i) => i !== item);
-//       } else if (state.activeItems.length < 4) {
-//         state.activeItems.push(item);
-//       }
-//     },
-
-//     submit() {
-//       const foundGroup = state.incomplete.find((group) =>
-//         group.items.every((item) => state.activeItems.includes(item))
-//       );
-
-//       if (foundGroup) {
-//         state.complete.push(foundGroup);
-//         const incomplete = state.incomplete.filter(
-//           (group) => group !== foundGroup
-//         );
-//         state.incomplete = incomplete;
-//         state.items = shuffle(incomplete.flatMap((group) => group.items));
-//         state.activeItems = [];
-//       } else {
-//         state.mistakesRemaining -= 1;
-//         state.activeItems = [];
-
-//         if (state.mistakesRemaining === 0) {
-//           state.complete = [...state.incomplete];
-//           state.incomplete = [];
-//           state.items = [];
-//         }
-//       }
-//     },
-//   };
-// };
-
 export const Game = () => {
   const { id } = useParams();
   const [gameData, setGameData] = useState({});
@@ -70,6 +52,17 @@ export const Game = () => {
   const [mistakesRemaining, setMistakesRemaining] = useState(-1);
   const [winState, setWinState] = useState("playing");
   const [pastGuesses, setPastGuesses] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const guessed = (currentGuess) => {
+    for (const pastGuess of pastGuesses) {
+      if (setEquals(currentGuess, pastGuess)) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   const getGame = async () => {
     const game = await findPuzzleById(id);
@@ -87,24 +80,33 @@ export const Game = () => {
       throw new Error("THIS SHOULD NEVER HAPPEN!");
     }
 
-    const [cat, difficulty] = [
+    if (guessed(activeItems)) {
+      return;
+    }
+
+    let goodGuess = true;
+
+    const [category, difficulty] = [
       activeItems[0].category,
       activeItems[0].difficulty,
     ];
 
     for (let i = 1; i < 4; i++) {
-      if (
-        activeItems[i].difficulty !== difficulty ||
-        activeItems[i].category !== cat
-      ) {
-        alert("NO!!!");
-        setMistakesRemaining(mistakesRemaining - 1);
-        if (mistakesRemaining === 1) {
-          alert("wompwomp");
-          setWinState("lose");
-        }
-        return;
+      goodGuess =
+        goodGuess &&
+        activeItems[i].difficulty === difficulty &&
+        activeItems[i].category === category;
+    }
+
+    setPastGuesses([...pastGuesses, activeItems]);
+    setActiveItems([]);
+
+    if (!goodGuess) {
+      setMistakesRemaining(mistakesRemaining - 1);
+      if (mistakesRemaining === 1) {
+        setWinState("lose");
       }
+      return;
     }
 
     setIncomplete(
@@ -120,8 +122,8 @@ export const Game = () => {
     setComplete([
       ...complete,
       {
-        category: cat,
-        difficulty,
+        category: category,
+        difficulty: difficulty,
         text: activeItems.map((item) => item.word).join(", "),
       },
     ]);
@@ -130,8 +132,6 @@ export const Game = () => {
       alert("happy happy happy");
       setWinState("win");
     }
-
-    setActiveItems([]);
   };
 
   const shuffle = () => {
@@ -151,16 +151,42 @@ export const Game = () => {
   };
 
   const showResults = () => {
-    alert("TODO")
+    const finalGuessString = pastGuesses
+      .map((guess) =>
+        guess.map((word) => difficultyEmoji(word.difficulty)).join(" ")
+      )
+      .join("\n");
+
+    return (
+      <Box align="center" justify="center" margin="10px">
+        <Typography sx={{ whiteSpace: "break-spaces" }}>
+          {finalGuessString}
+        </Typography>
+        <Button
+          variant="filled"
+          rounded="full"
+          onClick={() => {
+            setCopied(true);
+            navigator.clipboard.writeText(finalGuessString);
+          }}
+        >
+          Copy Results
+        </Button>
+        {copied && <Alert severity="success">Results copied!</Alert>}
+      </Box>
+    );
+  };
+
+  if (gameData === "NO GAME") {
+    return (
+      <Box h="100vh" w="100vw" align="center" justify="center">
+        404
+      </Box>
+    );
   }
 
-  return gameData === "NO GAME" ? (
-    <Box h="100vh" w="100vw" align="center" justify="center">
-      404
-    </Box>
-  ) : (
+  return (
     <>
-      <Button>Share {id}</Button>
       <Box h="100vh" w="100vw" align="center" justify="center">
         <Grid align="center">
           <Typography size="3xl" fontFamily="Georgia" fontWeight="light">
@@ -175,13 +201,15 @@ export const Game = () => {
                 disabled
                 style={{
                   minWidth: "650px",
-                  // maxWidth: "600px",
                   minHeight: "80px",
                 }}
                 color={difficultyColor(group.difficulty)}
                 variant="contained"
               >
-                <Typography color={"black"}>{group.text}</Typography>
+                <Box align="center" justify="center" margin="10px">
+                  <Typography fontWeight='bold' color={"black"}>{group.category}</Typography>
+                  <Typography color={"black"}>{group.text}</Typography>
+                </Box>
               </Button>
             ))}
 
@@ -248,14 +276,23 @@ export const Game = () => {
             <Button
               variant="outline"
               rounded="full"
-              onClick={showResults}
-              sx={{margin: 4}}
+              onClick={() => setOpen(true)}
+              sx={{ margin: 4 }}
             >
               View Results
             </Button>
           )}
         </Grid>
       </Box>
+      <Dialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setCopied(false);
+        }}
+      >
+        {showResults()}
+      </Dialog>
     </>
   );
 };

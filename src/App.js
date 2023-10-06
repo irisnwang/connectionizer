@@ -10,11 +10,11 @@ import PlayLanding from "./components/play-landing";
 const theme = createTheme({
   palette: {
     primary: { main: "#efefe6" },
-    info: { main: "#fbd400" },
-    error: { main: "#b5e352" },
-    warning: { main: "#729eeb" },
-    success: { main: "#bc70c4" },
     secondary: { main: "#5a594e" },
+    purple: { main: "#bc70c4" },
+    green: { main: "#b5e352" },
+    blue: { main: "#729eeb" },
+    yellow: { main: "#fbd400" },
     action: {
       disabledBackground: "", // don't set the disable background color
       disabled: "#efefe6", // set the disable foreground color
