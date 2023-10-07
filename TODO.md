@@ -5,9 +5,9 @@
 - [x] Write up homepage
 - [x] Refactor puzzle schema to not be so bad
 - [x] Add optional name & title
-- [ ] Deploy React
-- [ ] Deploy Node
-- [ ] Deploy DB
+- [x] Deploy React
+- [x] Deploy Node
+- [x] Deploy DB
 - [x] Rewrite README.md
 - [x] Autosolve on loss
 - [x] Support mobile

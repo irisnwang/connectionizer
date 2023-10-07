@@ -199,23 +199,36 @@ export const Game = () => {
 
   // Game render methods
   const showResults = () => {
+    const titleString = gameData.title ?? "";
+    const authorString = gameData.author ? " By " + gameData.author : "";
+
     const finalGuessString = pastGuesses
       .map((guess) =>
         guess.map((word) => difficultyEmoji(word.difficulty)).join(" ")
       )
       .join("\n");
 
+    const finalShareMessage =
+      titleString +
+      authorString +
+      "\n" +
+      shareMessage +
+      "\n" +
+      finalGuessString +
+      "\n" +
+      window.location.href;
+
     return (
       <Box align="center" justify="center" margin="10px">
         <Typography sx={{ whiteSpace: "break-spaces" }}>
-          {shareMessage + "\n" + finalGuessString}
+          {finalShareMessage}
         </Typography>
         <Button
           variant="filled"
           rounded="full"
           onClick={() => {
             setCopied(true);
-            navigator.clipboard.writeText(finalGuessString);
+            navigator.clipboard.writeText(finalShareMessage);
           }}
         >
           Copy Results
@@ -250,9 +263,13 @@ export const Game = () => {
       <Box h="100vh" w="100vw" align="center" justify="center">
         {showAlert()}
         <Grid align="center">
-          <Typography fontSize="24px">Connections</Typography>
+          <Typography fontSize="24px">
+            {gameData.title ?? "Connections"}
+          </Typography>
           <Typography fontWeight="semibold" marginBottom="10px">
-            Create four groups of four!
+            {gameData.author
+              ? "By " + gameData.author
+              : "Create four groups of four!"}
           </Typography>
           <Box
             display="grid"
