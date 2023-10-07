@@ -8,10 +8,8 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { createPuzzle } from "../services/puzzles-service";
-import { useNavigate } from "react-router-dom";
 
 export const Creator = () => {
-  const navigate = useNavigate;
   const form = useForm();
 
   const infiniteGuesses = form.watch("infinite");
@@ -65,7 +63,7 @@ export const Creator = () => {
         },
       ],
     });
-    navigate("/create/" + created._id);
+    window.location.replace(window.location.href + "/" + created._id);
   };
 
   function CategoryRow(number) {
@@ -149,7 +147,6 @@ export const Creator = () => {
           )}
         />
         <Controller
-          rules={{ required: true }}
           name="title"
           control={form.control}
           render={({ field: { onChange, value } }) => (

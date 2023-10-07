@@ -3,7 +3,7 @@ import { findAllPuzzleIds } from "../services/puzzles-service";
 import { useNavigate } from "react-router-dom";
 
 export const PlayLanding = () => {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
   const randomizePuzzle = async () => {
     const puzzles = await findAllPuzzleIds();
     const randomPuzzleId = puzzles[Math.floor(Math.random() * puzzles.length)];
