@@ -4,6 +4,7 @@ import {
   Checkbox,
   FormControlLabel,
   TextField,
+  Typography,
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { createPuzzle } from "../services/puzzles-service";
@@ -17,28 +18,54 @@ export const Creator = () => {
 
   const onSubmit = async (data) => {
     const created = await createPuzzle({
-        guesses: data.guesses,
-        words: [
-          { word: data.cat1word1, category: data.category1, difficulty: 1 },
-          { word: data.cat1word2, category: data.category1, difficulty: 1 },
-          { word: data.cat1word3, category: data.category1, difficulty: 1 },
-          { word: data.cat1word4, category: data.category1, difficulty: 1 },
-          { word: data.cat2word1, category: data.category2, difficulty: 2 },
-          { word: data.cat2word2, category: data.category2, difficulty: 2 },
-          { word: data.cat2word3, category: data.category2, difficulty: 2 },
-          { word: data.cat2word4, category: data.category2, difficulty: 2 },
-          { word: data.cat3word1, category: data.category3, difficulty: 3 },
-          { word: data.cat3word2, category: data.category3, difficulty: 3 },
-          { word: data.cat3word3, category: data.category3, difficulty: 3 },
-          { word: data.cat3word4, category: data.category3, difficulty: 3 },
-          { word: data.cat4word1, category: data.category4, difficulty: 4 },
-          { word: data.cat4word2, category: data.category4, difficulty: 4 },
-          { word: data.cat4word3, category: data.category4, difficulty: 4 },
-          { word: data.cat4word4, category: data.category4, difficulty: 4 },
-        ],
-      });
-      window.location.replace(BASE_URL + "create/" + created._id);
-    };
+      author: data.author,
+      title: data.title,
+      guesses: data.guesses,
+      categories: [
+        {
+          category: data.category1,
+          difficulty: 1,
+          words: [
+            data.cat1word1,
+            data.cat1word2,
+            data.cat1word3,
+            data.cat1word4,
+          ],
+        },
+        {
+          category: data.category2,
+          difficulty: 2,
+          words: [
+            data.cat2word1,
+            data.cat2word2,
+            data.cat2word3,
+            data.cat2word4,
+          ],
+        },
+        {
+          category: data.category3,
+          difficulty: 3,
+          words: [
+            data.cat3word1,
+            data.cat3word2,
+            data.cat3word3,
+            data.cat3word4,
+          ],
+        },
+        {
+          category: data.category4,
+          difficulty: 4,
+          words: [
+            data.cat4word1,
+            data.cat4word2,
+            data.cat4word3,
+            data.cat4word4,
+          ],
+        },
+      ],
+    });
+    window.location.replace(BASE_URL + "create/" + created._id);
+  };
 
   function CategoryRow(number) {
     return (
@@ -102,8 +129,42 @@ export const Creator = () => {
       gap={2}
       gridTemplateColumns="1fr"
     >
+      <Typography fontSize="24px" className="container">
+        Create a Puzzle
+      </Typography>
+      <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+        <Controller
+          name="author"
+          control={form.control}
+          render={({ field: { onChange, value } }) => (
+            <TextField
+              size="small"
+              fullWidth
+              onChange={onChange}
+              value={value}
+              label={"Author (Optional)"}
+              variant="outlined"
+            />
+          )}
+        />
+        <Controller
+          rules={{ required: true }}
+          name="title"
+          control={form.control}
+          render={({ field: { onChange, value } }) => (
+            <TextField
+              size="small"
+              fullWidth
+              onChange={onChange}
+              value={value}
+              label="Title (Optional)"
+              variant="outlined"
+            />
+          )}
+        />
+      </Box>
       {Array.from({ length: 4 }, (_, i) => i + 1).map((n) => CategoryRow(n))}
-      <Box display="grid" span="4">
+      <Box display="grid">
         <Controller
           rules={{ required: true }}
           name={"guesses"}
@@ -155,8 +216,9 @@ export const Creator = () => {
           labelPlacement="end"
         />
       </Box>
-      <div />
-      <Button onClick={form.handleSubmit(onSubmit)} color="secondary" variant="outlined">Submit</Button>
+      <Button onClick={form.handleSubmit(onSubmit)} variant="outlined">
+        Share
+      </Button>
     </Box>
   );
 };

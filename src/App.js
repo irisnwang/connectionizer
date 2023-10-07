@@ -9,8 +9,8 @@ import PlayLanding from "./components/play-landing";
 
 const theme = createTheme({
   palette: {
-    primary: { main: "#efefe6" },
-    secondary: { main: "#5a594e" },
+    secondary: { main: "#efefe6" },
+    primary: { main: "#5a594e" },
     purple: { main: "#bc70c4" },
     green: { main: "#b5e352" },
     blue: { main: "#729eeb" },

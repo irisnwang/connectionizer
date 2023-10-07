@@ -1,23 +1,28 @@
-import {Outlet} from "react-router-dom";
+import {
+  AppBar,
+  Button,
+  Toolbar,
+} from "@mui/material";
+import { Outlet } from "react-router-dom";
 
 function Game() {
   return (
-      <div className="my-4">
-        <div className="row mt-2">
-          <h1 className="text-center">
-            <a href="/" className="text-decoration-none">Home</a>
-          </h1>
-          <h1 className="text-center">
-            <a href="/play" className="text-decoration-none">Play</a>
-          </h1>
-          <h1 className="text-center">
-            <a href="/create" className="text-decoration-none">Create</a>
-          </h1>
-        </div>
-        <div className="container">
-          <Outlet/>
-        </div>
-      </div>
+    <>
+      <AppBar position="static" color="secondary" sx={{ marginBottom: "20px" }}>
+        <Toolbar variant="dense">
+          <Button href="/" sx={{ color: "black" }} disableRipple>
+            Home
+          </Button>
+          <Button href="/create" sx={{ color: "black" }} disableRipple>
+            Create
+          </Button>
+          <Button href="/play" sx={{ color: "black" }} disableRipple>
+            Play
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <Outlet />
+    </>
   );
 }
 

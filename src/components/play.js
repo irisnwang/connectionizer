@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { findPuzzleById } from "../services/puzzles-service";
 
+// Util methods
 const difficultyColor = (difficulty) => {
   return {
     1: "yellow",
@@ -22,9 +23,14 @@ const difficultyEmoji = (difficulty) => {
   }[difficulty];
 };
 
+const getFontSize = (text, max) => {
+  if (text.length > max) {
+    return "12px";
+  }
+  return "16px";
+};
+
 const setEquals = (setA, setB) => {
-  console.log(setA);
-  console.log(setB);
   if (setA.length !== setB.length) {
     return false;
   }
@@ -44,6 +50,7 @@ const shuffleUtil = (list) => {
 };
 
 export const Game = () => {
+  // Game hooks
   const { id } = useParams();
   const [gameData, setGameData] = useState({});
   const [activeItems, setActiveItems] = useState([]);
@@ -54,6 +61,44 @@ export const Game = () => {
   const [pastGuesses, setPastGuesses] = useState([]);
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [shareMessage, setShareMessage] = useState(null);
+
+  // Init
+  const getGame = async () => {
+    const game = await findPuzzleById(id);
+    if (Object.keys(game).length === 0) {
+      setGameData("NO GAME");
+      return;
+    }
+    setGameData(game);
+    const words = game.categories.flatMap((category) => {
+      return category.words.map((word) => ({
+        word: word,
+        difficulty: category.difficulty,
+      }));
+    });
+    setIncomplete(shuffleUtil([...words]));
+    setMistakesRemaining(parseInt(game.guesses));
+  };
+
+  useEffect(() => {
+    getGame();
+  }, []);
+
+  // Game logic methods
+  const shuffle = () => {
+    setIncomplete(shuffleUtil([...incomplete]));
+  };
+
+  const select = (item) => {
+    setMessage(null);
+    if (activeItems.includes(item)) {
+      setActiveItems(activeItems.filter((i) => i !== item));
+    } else if (activeItems.length < 4) {
+      setActiveItems([...activeItems, item]);
+    }
+  };
 
   const guessed = (currentGuess) => {
     for (const pastGuess of pastGuesses) {
@@ -64,51 +109,55 @@ export const Game = () => {
     return false;
   };
 
-  const getGame = async () => {
-    const game = await findPuzzleById(id);
-    if (Object.keys(game).length === 0) {
-      setGameData("NO GAME");
-      return;
-    }
-    setGameData(game);
-    setIncomplete(shuffleUtil([...game.words]));
-    setMistakesRemaining(parseInt(game.guesses));
-  };
-
   const submit = () => {
+    // No op logic
     if (activeItems.length !== 4) {
       throw new Error("THIS SHOULD NEVER HAPPEN!");
     }
-
     if (guessed(activeItems)) {
+      setMessage("Guessed already!");
       return;
     }
 
-    let goodGuess = true;
+    // Guess check logic
+    const guessMap = new Map();
 
-    const [category, difficulty] = [
-      activeItems[0].category,
-      activeItems[0].difficulty,
-    ];
-
-    for (let i = 1; i < 4; i++) {
-      goodGuess =
-        goodGuess &&
-        activeItems[i].difficulty === difficulty &&
-        activeItems[i].category === category;
+    for (let i = 0; i < 4; i++) {
+      const currentCount = guessMap.get(activeItems[i].difficulty);
+      if (currentCount) {
+        guessMap.set(activeItems[i].difficulty, currentCount + 1);
+      } else {
+        guessMap.set(activeItems[i].difficulty, 1);
+      }
     }
+
+    const goodGuess = guessMap.size === 1;
+    const oneAway =
+      guessMap.size === 2 && guessMap.values().next().value % 2 === 1;
 
     setPastGuesses([...pastGuesses, activeItems]);
     setActiveItems([]);
 
+    // Incorrect
     if (!goodGuess) {
       setMistakesRemaining(mistakesRemaining - 1);
       if (mistakesRemaining === 1) {
+        setShareMessage("I lost!");
+        setMessage("You lose!");
         setWinState("lose");
+        solveRemaining();
+        return;
+      }
+      if (oneAway) {
+        setMessage("One away!");
+      } else {
+        setMessage("Incorrect");
       }
       return;
     }
 
+    // Correct
+    setMessage(null);
     setIncomplete(
       incomplete.filter(
         (incompleteItem) =>
@@ -118,38 +167,37 @@ export const Game = () => {
           incompleteItem !== activeItems[3]
       )
     );
-
     setComplete([
       ...complete,
-      {
-        category: category,
-        difficulty: difficulty,
-        text: activeItems.map((item) => item.word).join(", "),
-      },
+      gameData.categories[activeItems[0].difficulty - 1],
     ]);
 
+    // Check win condition
     if (complete.length === 3) {
-      alert("happy happy happy");
+      if (pastGuesses.length === 3) {
+        setShareMessage("Perfect!");
+      } else {
+        setShareMessage("I won!");
+      }
+      setMessage("You win!");
       setWinState("win");
     }
   };
 
-  const shuffle = () => {
-    setIncomplete(shuffleUtil([...incomplete]));
-  };
-
-  useEffect(() => {
-    getGame();
-  }, []);
-
-  const select = (item) => {
-    if (activeItems.includes(item)) {
-      setActiveItems(activeItems.filter((i) => i !== item));
-    } else if (activeItems.length < 4) {
-      setActiveItems([...activeItems, item]);
+  const solveRemaining = () => {
+    const newComplete = [];
+    for (let i = 0; i < 4; i++) {
+      if (!complete.some((item) => item.difficulty === i + 1)) {
+        newComplete.push(gameData.categories[i]);
+      }
     }
+
+    setComplete([...complete, ...newComplete]);
+
+    setIncomplete([]);
   };
 
+  // Game render methods
   const showResults = () => {
     const finalGuessString = pastGuesses
       .map((guess) =>
@@ -160,7 +208,7 @@ export const Game = () => {
     return (
       <Box align="center" justify="center" margin="10px">
         <Typography sx={{ whiteSpace: "break-spaces" }}>
-          {finalGuessString}
+          {shareMessage + "\n" + finalGuessString}
         </Typography>
         <Button
           variant="filled"
@@ -177,6 +225,18 @@ export const Game = () => {
     );
   };
 
+  const showAlert = () => {
+    if (message) {
+      return (
+        <Alert severity="info" sx={{ maxWidth: "500px", marginBottom: "10px" }}>
+          {message}
+        </Alert>
+      );
+    }
+    return <Box height="58px">&nbsp;</Box>;
+  };
+
+  // Game render
   if (gameData === "NO GAME") {
     return (
       <Box h="100vh" w="100vw" align="center" justify="center">
@@ -188,63 +248,79 @@ export const Game = () => {
   return (
     <>
       <Box h="100vh" w="100vw" align="center" justify="center">
+        {showAlert()}
         <Grid align="center">
-          <Typography size="3xl" fontFamily="Georgia" fontWeight="light">
-            Connections
-          </Typography>
-          <Typography fontWeight="semibold">
+          <Typography fontSize="24px">Connections</Typography>
+          <Typography fontWeight="semibold" marginBottom="10px">
             Create four groups of four!
           </Typography>
-          <Grid container gap={2} justifyContent="center">
+          <Box
+            display="grid"
+            gridTemplateColumns="1fr 1fr 1fr 1fr"
+            gap={2}
+            maxWidth="390px"
+          >
             {complete.map((group) => (
-              <Button
-                disabled
-                style={{
-                  minWidth: "650px",
-                  minHeight: "80px",
-                }}
-                color={difficultyColor(group.difficulty)}
-                variant="contained"
-              >
-                <Box align="center" justify="center" margin="10px">
-                  <Typography fontWeight='bold' color={"black"}>{group.category}</Typography>
-                  <Typography color={"black"}>{group.text}</Typography>
-                </Box>
-              </Button>
+              <Box gridColumn="span 4">
+                <Button
+                  disabled
+                  style={{
+                    minWidth: "390px",
+                    maxWidth: "390px",
+                    maxHeight: "80px",
+                  }}
+                  color={difficultyColor(group.difficulty)}
+                  variant="contained"
+                >
+                  <Box align="center" justify="center" margin="10px">
+                    <Typography
+                      fontFamily="monospace"
+                      fontWeight="bold"
+                      color={"black"}
+                    >
+                      {group.category}
+                    </Typography>
+                    <Typography
+                      noWrap
+                      // fontSize={getFontSize(group.text, 40)}
+                      fontFamily="monospace"
+                      color={"black"}
+                    >
+                      {group.words.join(", ")}
+                    </Typography>
+                  </Box>
+                </Button>
+              </Box>
             ))}
-
             {chunk(incomplete, 4).map((row) => (
               <>
-                <Grid container gap={2} justifyContent="center">
-                  {row.map((item) => (
-                    <Button
-                      style={{
-                        minWidth: "150px",
-                        maxWidth: "150px",
-                        minHeight: "80px",
-                      }}
-                      color={
-                        activeItems.includes(item) ? "secondary" : "primary"
-                      }
-                      variant="contained"
-                      onClick={() => select(item)}
+                {row.map((item) => (
+                  <Button
+                    style={{
+                      maxWidth: "80px",
+                      minHeight: "80px",
+                    }}
+                    color={activeItems.includes(item) ? "primary" : "secondary"}
+                    variant="contained"
+                    onClick={() => select(item)}
+                  >
+                    <Typography
+                      fontFamily="monospace"
+                      fontSize={getFontSize(item.word, 8)}
+                      color={activeItems.includes(item) ? "white" : "black"}
                     >
-                      <Typography
-                        color={activeItems.includes(item) ? "white" : "black"}
-                      >
-                        {item.word}
-                      </Typography>
-                    </Button>
-                  ))}
-                </Grid>
+                      {item.word}
+                    </Typography>
+                  </Button>
+                ))}
               </>
             ))}
-          </Grid>
+          </Box>
 
           {winState === "playing" ? (
             <>
               <Grid align="baseline">
-                <Typography>Mistakes remaining:</Typography>
+                <Typography marginTop="10px">Mistakes remaining:</Typography>
                 {mistakesRemaining >= 0
                   ? [...Array(mistakesRemaining).keys()].map(() => (
                       <CircleIcon bg="gray.800" size="12px" />
