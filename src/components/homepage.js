@@ -7,7 +7,8 @@ export const Homepage = () => {
         Welcome To Connectionizer
       </Typography>
       <Typography className="container">
-        Connectionizer is a tool for creating playing, and sharing custom NYT Connections-style puzzles developed by Iris Wang.
+        Connectionizer is a tool for creating playing, and sharing custom NYT
+        Connections-style puzzles developed by Iris Wang.
       </Typography>
     </Box>
   );

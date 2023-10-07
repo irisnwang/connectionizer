@@ -8,9 +8,10 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { createPuzzle } from "../services/puzzles-service";
-import { BASE_URL } from "./utils";
+import { useNavigate } from "react-router-dom";
 
 export const Creator = () => {
+  const navigate = useNavigate;
   const form = useForm();
 
   const infiniteGuesses = form.watch("infinite");
@@ -64,7 +65,7 @@ export const Creator = () => {
         },
       ],
     });
-    window.location.replace(BASE_URL + "create/" + created._id);
+    navigate("/create/" + created._id);
   };
 
   function CategoryRow(number) {

@@ -1,4 +1,10 @@
-import { Alert, Box, IconButton, InputAdornment, TextField } from "@mui/material";
+import {
+  Alert,
+  Box,
+  IconButton,
+  InputAdornment,
+  TextField,
+} from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useParams } from "react-router-dom";
 import { useState } from "react";
@@ -29,7 +35,11 @@ const ShareCreated = () => {
           ),
         }}
       />
-      {copied && <Alert sx={{width: "570px"}} severity="success">Text copied!</Alert>}
+      {copied && (
+        <Alert sx={{ width: "570px" }} severity="success">
+          Text copied!
+        </Alert>
+      )}
     </Box>
   );
 };
