@@ -3,6 +3,7 @@ import CircleIcon from "@mui/icons-material/Circle";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { findPuzzleById } from "../services/puzzles-service";
+import { BASE_URL } from "./utils";
 
 // Util methods
 const difficultyColor = (difficulty) => {
@@ -73,6 +74,12 @@ export const Game = () => {
     }
     setGameData(game);
     const words = game.categories.flatMap((category) => {
+      if (game.encoded) {
+        return category.words.map((word) => ({
+          word: atob(word),
+          difficulty: category.difficulty,
+        }));
+      }
       return category.words.map((word) => ({
         word: word,
         difficulty: category.difficulty,
@@ -201,7 +208,8 @@ export const Game = () => {
   const showResults = () => {
     const titleString = gameData.title ?? "";
     const authorString = gameData.author ? " By " + gameData.author : "";
-
+    const titleAuthorString =
+      titleString || authorString ? titleString + authorString + "\n" : "";
     const finalGuessString = pastGuesses
       .map((guess) =>
         guess.map((word) => difficultyEmoji(word.difficulty)).join(" ")
@@ -209,14 +217,13 @@ export const Game = () => {
       .join("\n");
 
     const finalShareMessage =
-      titleString +
-      authorString +
-      "\n" +
+      titleAuthorString +
       shareMessage +
       "\n" +
       finalGuessString +
       "\n" +
-      window.location.href;
+      BASE_URL +
+      id;
 
     return (
       <Box align="center" justify="center" margin="10px">
@@ -295,7 +302,7 @@ export const Game = () => {
                       fontWeight="bold"
                       color={"black"}
                     >
-                      {group.category}
+                      {gameData.encoded ? atob(group.category) : group.category}
                     </Typography>
                     <Typography
                       noWrap
@@ -303,7 +310,9 @@ export const Game = () => {
                       fontFamily="monospace"
                       color={"black"}
                     >
-                      {group.words.join(", ")}
+                      {gameData.encoded
+                        ? group.words.map((word) => atob(word)).join(", ")
+                        : group.words.join(", ")}
                     </Typography>
                   </Box>
                 </Button>

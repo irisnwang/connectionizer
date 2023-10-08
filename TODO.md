@@ -11,6 +11,10 @@
 - [x] Rewrite README.md
 - [x] Autosolve on loss
 - [x] Support mobile
+- [x] Fix share URLs
+- [x] Hide answers
+- [ ] Maybe remove random puzzle...
+- [ ] Maybe Give Up button on infinite puzzles
 
 ## Stretch goals
 - [ ] State (no refresh to play again)
