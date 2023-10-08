@@ -68,7 +68,7 @@ export const Game = () => {
   // Init
   const getGame = async () => {
     const game = await findPuzzleById(id);
-    if (Object.keys(game).length === 0) {
+    if (!game || Object.keys(game).length === 0) {
       setGameData("NO GAME");
       return;
     }
