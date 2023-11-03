@@ -223,6 +223,7 @@ export const Game = () => {
       finalGuessString +
       "\n" +
       BASE_URL +
+      "play/" +
       id;
 
     return (
