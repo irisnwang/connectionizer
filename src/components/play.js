@@ -261,7 +261,7 @@ export const Game = () => {
   if (gameData === "NO GAME") {
     return (
       <Box h="100vh" w="100vw" align="center" justify="center">
-        404
+        <Typography>404</Typography>
       </Box>
     );
   }

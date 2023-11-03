@@ -6,6 +6,7 @@ import Creator from "./components/creator";
 import Sidebar from "./components/sidebar";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import PlayLanding from "./components/play-landing";
+import NotFound from "./components/not-found";
 
 const theme = createTheme({
   palette: {
@@ -34,6 +35,7 @@ export const App = () => {
               <Route path="/play/:id" element={<Game />} />
               <Route path="/create" element={<Creator />} />
               <Route path="/create/:id" element={<ShareCreated />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </div>
