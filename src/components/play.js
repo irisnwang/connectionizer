@@ -3,7 +3,6 @@ import CircleIcon from "@mui/icons-material/Circle";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { findPuzzleById } from "../services/puzzles-service";
-import { BASE_URL } from "./utils";
 
 // Util methods
 const difficultyColor = (difficulty) => {
@@ -68,18 +67,12 @@ export const Game = () => {
   // Init
   const getGame = async () => {
     const game = await findPuzzleById(id);
-    if (!game || Object.keys(game).length === 0) {
+    if (Object.keys(game).length === 0) {
       setGameData("NO GAME");
       return;
     }
     setGameData(game);
     const words = game.categories.flatMap((category) => {
-      if (game.encoded) {
-        return category.words.map((word) => ({
-          word: atob(word),
-          difficulty: category.difficulty,
-        }));
-      }
       return category.words.map((word) => ({
         word: word,
         difficulty: category.difficulty,
@@ -208,8 +201,7 @@ export const Game = () => {
   const showResults = () => {
     const titleString = gameData.title ?? "";
     const authorString = gameData.author ? " By " + gameData.author : "";
-    const titleAuthorString =
-      titleString || authorString ? titleString + authorString + "\n" : "";
+
     const finalGuessString = pastGuesses
       .map((guess) =>
         guess.map((word) => difficultyEmoji(word.difficulty)).join(" ")
@@ -217,14 +209,14 @@ export const Game = () => {
       .join("\n");
 
     const finalShareMessage =
-      titleAuthorString +
+      titleString +
+      authorString +
+      "\n" +
       shareMessage +
       "\n" +
       finalGuessString +
       "\n" +
-      BASE_URL +
-      "play/" +
-      id;
+      window.location.href;
 
     return (
       <Box align="center" justify="center" margin="10px">
@@ -261,7 +253,7 @@ export const Game = () => {
   if (gameData === "NO GAME") {
     return (
       <Box h="100vh" w="100vw" align="center" justify="center">
-        <Typography>404</Typography>
+        404
       </Box>
     );
   }
@@ -303,7 +295,7 @@ export const Game = () => {
                       fontWeight="bold"
                       color={"black"}
                     >
-                      {gameData.encoded ? atob(group.category) : group.category}
+                      {group.category}
                     </Typography>
                     <Typography
                       noWrap
@@ -311,9 +303,7 @@ export const Game = () => {
                       fontFamily="monospace"
                       color={"black"}
                     >
-                      {gameData.encoded
-                        ? group.words.map((word) => atob(word)).join(", ")
-                        : group.words.join(", ")}
+                      {group.words.join(", ")}
                     </Typography>
                   </Box>
                 </Button>

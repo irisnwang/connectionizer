@@ -22,47 +22,46 @@ export const Creator = () => {
       guesses: data.guesses,
       categories: [
         {
-          category: btoa(data.category1),
+          category: data.category1,
           difficulty: 1,
           words: [
-            btoa(data.cat1word1),
-            btoa(data.cat1word2),
-            btoa(data.cat1word3),
-            btoa(data.cat1word4),
+            data.cat1word1,
+            data.cat1word2,
+            data.cat1word3,
+            data.cat1word4,
           ],
         },
         {
-          category: btoa(data.category2),
+          category: data.category2,
           difficulty: 2,
           words: [
-            btoa(data.cat2word1),
-            btoa(data.cat2word2),
-            btoa(data.cat2word3),
-            btoa(data.cat2word4),
+            data.cat2word1,
+            data.cat2word2,
+            data.cat2word3,
+            data.cat2word4,
           ],
         },
         {
-          category: btoa(data.category3),
+          category: data.category3,
           difficulty: 3,
           words: [
-            btoa(data.cat3word1),
-            btoa(data.cat3word2),
-            btoa(data.cat3word3),
-            btoa(data.cat3word4),
+            data.cat3word1,
+            data.cat3word2,
+            data.cat3word3,
+            data.cat3word4,
           ],
         },
         {
-          category: btoa(data.category4),
+          category: data.category4,
           difficulty: 4,
           words: [
-            btoa(data.cat4word1),
-            btoa(data.cat4word2),
-            btoa(data.cat4word3),
-            btoa(data.cat4word4),
+            data.cat4word1,
+            data.cat4word2,
+            data.cat4word3,
+            data.cat4word4,
           ],
         },
       ],
-      encoded: true,
     });
     window.location.replace(window.location.href + "/" + created._id);
   };

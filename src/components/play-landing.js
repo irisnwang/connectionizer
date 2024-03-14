@@ -1,8 +1,14 @@
 import { Box, Button, Typography } from "@mui/material";
+import { findAllPuzzleIds } from "../services/puzzles-service";
 import { useNavigate } from "react-router-dom";
 
 export const PlayLanding = () => {
   const navigate = useNavigate();
+  const randomizePuzzle = async () => {
+    const puzzles = await findAllPuzzleIds();
+    const randomPuzzleId = puzzles[Math.floor(Math.random() * puzzles.length)];
+    navigate("/play/" + randomPuzzleId);
+  };
   return (
     <Box align="center">
       <Typography>
@@ -18,9 +24,9 @@ export const PlayLanding = () => {
       <Button
         variant="outline"
         rounded="full"
-        onClick={() => navigate("/play/65558033af5dfc13c5883280")}
+        onClick={() => randomizePuzzle()}
       >
-        Play an example puzzle
+        Play a random puzzle
       </Button>
     </Box>
   );
