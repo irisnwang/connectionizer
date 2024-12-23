@@ -13,7 +13,8 @@
 - [x] Support mobile
 - [x] Fix share URLs
 - [x] Hide answers
-- [ ] Maybe remove random puzzle...
+- [x] Maybe remove random puzzle...
+- [x] Loading UI
 - [ ] Maybe Give Up button on infinite puzzles
 
 ## Stretch goals
